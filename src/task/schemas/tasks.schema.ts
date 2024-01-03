@@ -18,7 +18,7 @@ export class Task {
   parentTask?: mongoose.Types.ObjectId;
 
   @Prop()
-  subTasks?: Array<mongoose.Types.ObjectId>;
+  subTasks?: Array<string>;
 
   @Prop({ required: true })
   name: string;
