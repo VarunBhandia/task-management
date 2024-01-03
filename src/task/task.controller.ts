@@ -16,7 +16,11 @@ export class TaskController {
 
   @Post('/')
   async createTask(@Body() task: CreateTaskDto) {
-    return this.taskService.createTask(task);
+    const { weight = 1 } = task;
+    return this.taskService.createTask({
+      ...task,
+      weight
+    });
   }
 
   @Post('/sub-task')
