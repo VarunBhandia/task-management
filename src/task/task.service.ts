@@ -1,7 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { TaskDao } from './task.dao';
 import { CreateTaskDto } from './dtos/create-task.dto';
-import { CreateSubTaskDto } from './dtos/create-sub-task.dto';
 import { UpdateProgressDto } from './dtos/update-progress.dto';
 
 @Injectable()
@@ -13,13 +12,26 @@ export class TaskService {
   }
 
   async createTask(task: CreateTaskDto) {
+    const { parentTaskId } = task;
+    if (parentTaskId) {
+      return this.createSubTask(task);
+    }
     return this.taskDao.create(task);
   }
 
-  async createSubTask(subTask: CreateSubTaskDto) {
-    const createdSubTask = await this.createTask(subTask);
+  async createSubTask(subTask: CreateTaskDto) {
+    const { parentTaskId } = subTask;
+
+    const parentTask = await this.getTaskById(parentTaskId);
+    if (!parentTask) {
+      throw new HttpException(
+        'No parent task mapped to given parent id',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const createdSubTask = await this.taskDao.create(subTask);
     await this.assignSubTaskToParentTask(
-      subTask.parentTaskId,
+      parentTaskId,
       createdSubTask._id.toString(),
     );
 
@@ -27,6 +39,7 @@ export class TaskService {
   }
 
   async assignSubTaskToParentTask(parentTaskId: string, subtaskId: string) {
+    await this.taskDao.resetProgress(parentTaskId)
     return this.taskDao.addSubTaskToParent(parentTaskId, subtaskId);
   }
 
@@ -46,20 +59,21 @@ export class TaskService {
     return await this.taskDao.updateProgress(updateProgressPaylaod);
   }
 
-  async getProgessForTask(taskId: string): Promise<number> {
+  async getProgessForTask(taskId: string) {
     const task = await this.getTaskById(taskId);
+    const { progress, weight, subTasks } = task;
 
-    const { progress, weight } = task;
+    if (subTasks.length == 0) return { progress, weight };
 
-    if (progress) return progress * weight;
-
-    const { subTasks } = task;
-    let overAllProgress = 0;
-    for (let subTask in subTasks) {
-      const currProgress = await this.getProgessForTask(subTask);
-      overAllProgress = overAllProgress + currProgress;
+    let totalProgress = 0;
+    let totalWeight = 0;
+    for (let i = 0; i < subTasks.length; i++) {
+      const currProgress = await this.getProgessForTask(subTasks[i]);
+      totalProgress =
+        totalProgress + currProgress.progress * currProgress.weight;
+      totalWeight = totalWeight + currProgress.weight;
     }
 
-    return overAllProgress;
+    return { progress: totalProgress / totalWeight, weight: totalWeight };
   }
 }

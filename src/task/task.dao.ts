@@ -14,8 +14,17 @@ export class TaskDao {
   }
 
   async create(task: CreateTaskDto) {
+    const { actor, progress, name, weight, parentTaskId } = task;
+    const progressLogs = {
+      updatedBy: actor,
+      progress,
+    };
     return this.taskModel.create({
-      ...task,
+      parentTaskId,
+      name,
+      progress,
+      weight,
+      progressLogs,
     });
   }
 
@@ -38,6 +47,15 @@ export class TaskDao {
             progress,
           },
         },
+      },
+    );
+  }
+
+  async resetProgress(taskId: string) {
+    return this.taskModel.updateOne(
+      { _id: taskId },
+      {
+        $unset: { progress: 1 },
       },
     );
   }

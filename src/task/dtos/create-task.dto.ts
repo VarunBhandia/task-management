@@ -12,4 +12,6 @@ export class CreateTaskDto {
   weight?: number = 1;
 
   parentTaskId?: string;
+
+  actor: string
 }

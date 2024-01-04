@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, _id: false })
 export class TaskProgressLog {
   @Prop({ required: true })
   progress: number;
@@ -15,7 +15,7 @@ const TaskProgressLogSchema = SchemaFactory.createForClass(TaskProgressLog);
 @Schema({ timestamps: true })
 export class Task {
   @Prop()
-  parentTask?: mongoose.Types.ObjectId;
+  parentTaskId?: mongoose.Types.ObjectId;
 
   @Prop()
   subTasks?: Array<string>;
