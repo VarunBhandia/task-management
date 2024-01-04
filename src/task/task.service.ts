@@ -23,9 +23,9 @@ export class TaskService {
     return this.taskDao.create(task);
   }
 
-  async createSubTask(subTask: CreateTaskDto) {
+  private async createSubTask(subTask: CreateTaskDto) {
     const { parentTaskId } = subTask;
-
+    await this.invalidateProgressCache(parentTaskId);
     const parentTask = await this.getTaskById(parentTaskId);
     if (!parentTask) {
       throw new HttpException(
@@ -42,9 +42,24 @@ export class TaskService {
     return createdSubTask;
   }
 
-  async assignSubTaskToParentTask(parentTaskId: string, subtaskId: string) {
+  private async assignSubTaskToParentTask(
+    parentTaskId: string,
+    subtaskId: string,
+  ) {
     await this.taskDao.resetProgress(parentTaskId);
     return this.taskDao.addSubTaskToParent(parentTaskId, subtaskId);
+  }
+
+  private async invalidateProgressCache(taskId: string): Promise<boolean> {
+    const task = await this.getTaskById(taskId);
+    const { parentTaskId } = task;
+    await this.cacheManager.del(`progress_${taskId}`);
+
+    if (!parentTaskId) {
+      return true;
+    }
+
+    return await this.invalidateProgressCache(parentTaskId);
   }
 
   async updateTaskProgress(updateProgressPaylaod: UpdateProgressDto) {
@@ -59,7 +74,7 @@ export class TaskService {
         HttpStatus.BAD_REQUEST,
       );
     }
-
+    await this.invalidateProgressCache(taskId);
     return await this.taskDao.updateProgress(updateProgressPaylaod);
   }
 
@@ -67,7 +82,7 @@ export class TaskService {
     const cachedData = await this.cacheManager.get<{
       progress: number;
       weight: number;
-    }>(taskId);
+    }>(`progress_${taskId}`);
 
     if (cachedData) return cachedData;
 
@@ -80,7 +95,11 @@ export class TaskService {
     let totalWeight = 0;
     for (let i = 0; i < subTasks.length; i++) {
       const currProgress = await this.getProgessForTask(subTasks[i]);
-      await this.cacheManager.set(subTasks[i], currProgress, 5000);
+      await this.cacheManager.set(
+        `progress_${subTasks[i]}`,
+        currProgress,
+        5000,
+      );
       totalProgress =
         totalProgress + currProgress.progress * currProgress.weight;
       totalWeight = totalWeight + currProgress.weight;
@@ -89,7 +108,7 @@ export class TaskService {
       progress: totalProgress / totalWeight,
       weight: totalWeight,
     };
-    await this.cacheManager.set(taskId, overAllProgress, 6000);
+    await this.cacheManager.set(`progress_${taskId}`, overAllProgress, 6000);
     return overAllProgress;
   }
 }

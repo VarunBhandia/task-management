@@ -15,7 +15,7 @@ const TaskProgressLogSchema = SchemaFactory.createForClass(TaskProgressLog);
 @Schema({ timestamps: true })
 export class Task {
   @Prop()
-  parentTaskId?: mongoose.Types.ObjectId;
+  parentTaskId?: string;
 
   @Prop()
   subTasks?: Array<string>;

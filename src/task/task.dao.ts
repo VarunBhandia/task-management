@@ -1,5 +1,5 @@
 import { InjectModel } from '@nestjs/mongoose';
-import { Task, TaskDocument } from './schemas/tasks.schema';
+import { Task, TaskDocument } from './schemas/task.schema';
 import { Model } from 'mongoose';
 import { CreateTaskDto } from './dtos/create-task.dto';
 import { UpdateProgressDto } from './dtos/update-progress.dto';
