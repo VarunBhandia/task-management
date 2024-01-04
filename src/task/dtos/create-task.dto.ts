@@ -5,13 +5,12 @@ export class CreateTaskDto {
 
   @Max(100, { message: 'Progress must not exceed 100' })
   @Min(1, { message: 'Progress must be atleast 1' })
-  progress: number;
+  progress?: number = 0;
 
-  @Max(100, { message: 'Weight must not exceed 100' })
   @Min(1, { message: 'Weight must be atleast 1' })
   weight?: number = 1;
 
   parentTaskId?: string;
 
-  actor: string
+  actor: string;
 }

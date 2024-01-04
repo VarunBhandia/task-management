@@ -15,10 +15,11 @@ export class TaskController {
 
   @Post('/')
   async createTask(@Body() task: CreateTaskDto) {
-    const { weight = 1 } = task;
+    const { weight = 1, progress = 0 } = task;
     return this.taskService.createTask({
       ...task,
       weight,
+      progress,
     });
   }
 
@@ -28,7 +29,9 @@ export class TaskController {
   }
 
   @Get('/progress/:id')
-  async getProgressForTask(@Param() params) {
+  async getProgressForTask(
+    @Param() params,
+  ): Promise<{ overAllProgress: number; overAllWeight: number }> {
     const { id } = params;
     const { progress, weight } = await this.taskService.getProgessForTask(id);
     return { overAllProgress: Math.round(progress), overAllWeight: weight };
