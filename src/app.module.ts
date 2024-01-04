@@ -3,10 +3,35 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TasksModule } from './task/task.module';
 import { MongooseModule } from '@nestjs/mongoose';
+import { CacheModule } from '@nestjs/cache-manager';
+import { CacheModuleAsyncOptions } from '@nestjs/cache-manager';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { redisStore } from 'cache-manager-redis-store';
 
 const mongooseModule = MongooseModule.forRoot('mongodb://localhost/powerplay');
+export const RedisOptions: CacheModuleAsyncOptions = {
+  isGlobal: true,
+  imports: [ConfigModule],
+  useFactory: async (configService: ConfigService) => {
+    const store = await redisStore({
+      socket: {
+        host: configService.get<string>('REDIS_HOST'),
+        port: parseInt(configService.get<string>('REDIS_PORT')!),
+      },
+    });
+    return {
+      store: () => store,
+    };
+  },
+  inject: [ConfigService],
+};
 @Module({
-  imports: [TasksModule, mongooseModule],
+  imports: [
+    TasksModule,
+    mongooseModule,
+    ConfigModule.forRoot({ isGlobal: true,  }),
+    CacheModule.registerAsync(RedisOptions),
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

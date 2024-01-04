@@ -1,11 +1,15 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { TaskDao } from './task.dao';
 import { CreateTaskDto } from './dtos/create-task.dto';
 import { UpdateProgressDto } from './dtos/update-progress.dto';
-
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 @Injectable()
 export class TaskService {
-  constructor(private readonly taskDao: TaskDao) {}
+  constructor(
+    private readonly taskDao: TaskDao,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
   async getTaskById(id: string) {
     return this.taskDao.getById(id);
@@ -39,7 +43,7 @@ export class TaskService {
   }
 
   async assignSubTaskToParentTask(parentTaskId: string, subtaskId: string) {
-    await this.taskDao.resetProgress(parentTaskId)
+    await this.taskDao.resetProgress(parentTaskId);
     return this.taskDao.addSubTaskToParent(parentTaskId, subtaskId);
   }
 
@@ -60,6 +64,13 @@ export class TaskService {
   }
 
   async getProgessForTask(taskId: string) {
+    const cachedData = await this.cacheManager.get<{
+      progress: number;
+      weight: number;
+    }>(taskId);
+
+    if (cachedData) return cachedData;
+
     const task = await this.getTaskById(taskId);
     const { progress, weight, subTasks } = task;
 
@@ -69,11 +80,16 @@ export class TaskService {
     let totalWeight = 0;
     for (let i = 0; i < subTasks.length; i++) {
       const currProgress = await this.getProgessForTask(subTasks[i]);
+      await this.cacheManager.set(subTasks[i], currProgress, 5000);
       totalProgress =
         totalProgress + currProgress.progress * currProgress.weight;
       totalWeight = totalWeight + currProgress.weight;
     }
-
-    return { progress: totalProgress / totalWeight, weight: totalWeight };
+    const overAllProgress = {
+      progress: totalProgress / totalWeight,
+      weight: totalWeight,
+    };
+    await this.cacheManager.set(taskId, overAllProgress, 6000);
+    return overAllProgress;
   }
 }
