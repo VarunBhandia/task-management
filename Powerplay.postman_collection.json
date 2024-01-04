@@ -1,0 +1,120 @@
+{
+	"info": {
+		"_postman_id": "d9eb0f89-5303-4652-9708-ba44f61ddfc5",
+		"name": "Powerplay",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "6964091"
+	},
+	"item": [
+		{
+			"name": "Get task by ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/tasks/id",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"tasks",
+						"id"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update progress",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"taskId\": \"6596cf5ad3fa912e2b43526e\",\n    \"progress\": 30,\n    \"actor\": \"varun\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/tasks/progress",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"tasks",
+						"progress"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Progress",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"progress\": 3.2,\n  \"actorEmail\": \"varunbhandia@gmail.com\",\n  \"taskId\": \"6595a59dfa2283c9df68d6c9\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/tasks/progress/65963ce215a4c90380463348",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"tasks",
+						"progress",
+						"65963ce215a4c90380463348"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Tasks",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"st4\",\n  \"progress\": 50,\n  \"actor\":\"varun\",\n  \"weight\":7,\n  \"parentTaskId\":\"659640741866fd7f67e57d2e\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/tasks",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"tasks"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
